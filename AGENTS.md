@@ -6,14 +6,15 @@ Track actual time and stop at the cap; report incomplete work honestly.
 
 ## Layout and current stage
 
-- `frontend/`: planned React, Next.js App Router, TypeScript, and Tailwind CSS app.
+- `frontend/`: React, Next.js App Router, TypeScript, and Tailwind CSS app.
 - `backend/`: planned small Python FastAPI API using local synthetic fixtures.
 - `openapi.yaml`: handwritten, contract-first API specification. Read it before implementation.
 - `frontend/.env.example`: safe public API URL configuration.
 - `README.md` and `APPROACH.md`: required delivery records, to be created later.
 
-The FastAPI backend is implemented; the frontend remains pending. The handwritten
-contract predates implementation and must remain the source for contract checks.
+The FastAPI backend and frontend request form/states are implemented. Hotel cards
+and selection remain pending for the next task. The handwritten contract predates
+implementation and must remain the source for contract checks.
 
 ## Agreed scope and behaviour
 
@@ -56,8 +57,25 @@ backend/.venv/bin/python backend/check_http.py
 Backend runtime: Python 3.12.8, FastAPI 0.163.0, Uvicorn 0.54.0,
 Pydantic 2.14.3. `backend/requirements.txt` pins the installed environment,
 including test dependencies. CORS permits `http://localhost:3000` for POST with
-Content-Type. Frontend commands remain pending. Record runtime versions and
-complete install/run/check instructions in README.md at the documentation stage.
+Content-Type. Record runtime versions and complete install/run/check instructions
+in README.md at the documentation stage.
+
+Frontend commands (run from repository root; Node.js v22.22.2, npm 10.9.7):
+
+```sh
+npm --prefix frontend ci
+cp frontend/.env.example frontend/.env.local
+npm --prefix frontend run dev
+npm --prefix frontend test
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+```
+
+Copy the environment example only on initial setup, preserving any existing local
+configuration. Next.js reads `NEXT_PUBLIC_API_BASE_URL` from `.env.local`; restart
+after changing it. The frontend runs at `http://localhost:3000`. Package versions
+are recorded in `frontend/package-lock.json`. Tests replace fetch at the network
+boundary; they do not verify the real API or browser layout/keyboard behaviour.
 
 Planned checks: Vitest and Testing Library for focused frontend state/component
 checks; API validation and contract checks; TypeScript, lint, and production build
