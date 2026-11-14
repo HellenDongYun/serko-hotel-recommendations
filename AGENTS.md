@@ -7,14 +7,14 @@ Track actual time and stop at the cap; report incomplete work honestly.
 ## Layout and current stage
 
 - `frontend/`: React, Next.js App Router, TypeScript, and Tailwind CSS app.
-- `backend/`: planned small Python FastAPI API using local synthetic fixtures.
+- `backend/`: small Python FastAPI API using local synthetic fixtures.
 - `openapi.yaml`: handwritten, contract-first API specification. Read it before implementation.
 - `frontend/.env.example`: safe public API URL configuration.
 - `README.md` and `APPROACH.md`: required delivery records, to be created later.
 
-The FastAPI backend and frontend request form/states are implemented. Hotel cards
-and selection remain pending for the next task. The handwritten contract predates
-implementation and must remain the source for contract checks.
+The FastAPI backend and frontend request states, hotel cards, and selection are
+implemented. Real-browser verification with both services remains pending. The
+handwritten contract predates implementation and remains the source for contract checks.
 
 ## Agreed scope and behaviour
 

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home from "../app/page";
@@ -6,7 +6,11 @@ import Home from "../app/page";
 const originalMessage = "Find a Wellington hotel for two nights.";
 const success = {
   message: "Synthetic fixture data: here are three demo hotel recommendations.",
-  hotels: [{ id: "h1", name: "Harbour House", nightlyPrice: 220, currency: "NZD", breakfastIncluded: true, explanation: "Within budget; breakfast included." }],
+  hotels: [
+    { id: "h1", name: "Harbour House", nightlyPrice: 220, currency: "NZD", breakfastIncluded: true, explanation: "Within budget; breakfast included." },
+    { id: "h2", name: "City Garden", nightlyPrice: 245, currency: "NZD", breakfastIncluded: true, explanation: "Near the meeting district." },
+    { id: "h3", name: "Quay Rooms", nightlyPrice: 195, currency: "NZD", breakfastIncluded: false, explanation: "Lower price; breakfast costs extra." },
+  ],
 };
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -63,6 +67,7 @@ describe("recommendation request journey", () => {
     await user.click(screen.getByRole("button", { name: "Find hotels" }));
     expect(await screen.findByText("Synthetic fixture data: no hotels found for this demo scenario.")).toBeVisible();
     expect(screen.getByText(/No hotels found\. Try/)).toBeVisible();
+    expect(screen.queryByRole("article")).not.toBeInTheDocument();
   });
 
   it("preserves input after 503 and retries the original message with the current scenario", async () => {
@@ -74,6 +79,7 @@ describe("recommendation request journey", () => {
     await user.click(screen.getByRole("button", { name: "Find hotels" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(detail);
     expect(input).toHaveValue(originalMessage);
+    expect(screen.queryByRole("article")).not.toBeInTheDocument();
     expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ message: originalMessage, scenario: "error" });
     // Editing the visible input must not change what Retry sends.
     await user.clear(input);
@@ -83,6 +89,10 @@ describe("recommendation request journey", () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).toEqual({ message: originalMessage, scenario: "success" });
     expect(await screen.findByText(success.message)).toBeVisible();
+    expect(screen.getAllByRole("article")).toHaveLength(3);
+    for (const hotel of success.hotels) {
+      expect(screen.getByRole("article", { name: hotel.name })).toBeVisible();
+    }
     expect(input).toHaveValue("An edited draft");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -109,5 +119,62 @@ describe("recommendation request journey", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Cannot reach the recommendations API");
     expect(input).toHaveValue(originalMessage);
     expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+  });
+
+  it("renders every hotel field and supports one selected hotel using keyboard controls", async () => {
+    const { fetchMock, user, input } = setup();
+    fetchMock.mockResolvedValueOnce(json(success));
+    await user.type(input, originalMessage);
+    await user.click(screen.getByRole("button", { name: "Find hotels" }));
+    await screen.findByText(success.message);
+    expect(screen.getByRole("heading", { name: "Hotel recommendations · Synthetic fixture data" })).toBeVisible();
+    expect(screen.getAllByRole("article")).toHaveLength(3);
+    for (const hotel of success.hotels) {
+      const card = within(screen.getByRole("article", { name: hotel.name }));
+      expect(card.getByRole("heading", { name: hotel.name })).toBeVisible();
+      expect(card.getByText(`${hotel.currency} ${hotel.nightlyPrice.toFixed(2)} per night`)).toBeVisible();
+      expect(card.getByText(hotel.breakfastIncluded ? "Breakfast included" : "Breakfast not included")).toBeVisible();
+      expect(card.getByText(hotel.explanation)).toBeVisible();
+      expect(card.getByRole("button", { name: `Select ${hotel.name}` })).toHaveAttribute("aria-pressed", "false");
+    }
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Select Harbour House" })).toHaveFocus();
+    await user.keyboard("{Enter}");
+    let summary = within(screen.getByRole("region", { name: "Your selected hotel" }));
+    expect(summary.getByText("Harbour House")).toBeVisible();
+    expect(summary.getByText("NZD 220.00 per night")).toBeVisible();
+    expect(summary.getByText("Breakfast included")).toBeVisible();
+    await user.tab();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Select Quay Rooms" })).toHaveFocus();
+    await user.keyboard(" ");
+    summary = within(screen.getByRole("region", { name: "Your selected hotel" }));
+    expect(summary.getByText("Quay Rooms")).toBeVisible();
+    expect(summary.getByText("NZD 195.00 per night")).toBeVisible();
+    expect(summary.getByText("Breakfast not included")).toBeVisible();
+    expect(summary.queryByText("Harbour House")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Select Harbour House" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Select Quay Rooms" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("clears the previous selection when a new request starts, even when the same hotels return", async () => {
+    const { fetchMock, user, input } = setup();
+    let resolve!: (response: Response) => void;
+    fetchMock.mockResolvedValueOnce(json(success))
+      .mockReturnValueOnce(new Promise<Response>((done) => { resolve = done; }));
+    await user.type(input, originalMessage);
+    await user.click(screen.getByRole("button", { name: "Find hotels" }));
+    await user.click(await screen.findByRole("button", { name: "Select City Garden" }));
+    expect(screen.getByRole("region", { name: "Your selected hotel" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Find hotels" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Finding demo recommendations");
+    expect(screen.queryByRole("region", { name: "Your selected hotel" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("article")).not.toBeInTheDocument();
+    await act(async () => resolve(json(success)));
+    expect(await screen.findAllByRole("article")).toHaveLength(3);
+    expect(screen.queryByRole("region", { name: "Your selected hotel" })).not.toBeInTheDocument();
+    for (const button of screen.getAllByRole("button", { name: /^Select / })) {
+      expect(button).toHaveAttribute("aria-pressed", "false");
+    }
   });
 });

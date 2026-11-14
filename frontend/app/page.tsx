@@ -23,15 +23,20 @@ export default function Home() {
   const [scenario, setScenario] = useState<Scenario>("success");
   const [validation, setValidation] = useState("");
   const [state, setState] = useState<RequestState>({ status: "idle" });
+  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const lastSubmittedMessage = useRef<string | null>(null);
   const pending = useRef(false);
   const loading = state.status === "loading";
+  const selectedHotel = state.status === "done"
+    ? state.result.hotels.find((hotel) => hotel.id === selectedHotelId)
+    : undefined;
 
   async function requestRecommendations(submittedMessage: string) {
     if (pending.current) return;
     pending.current = true;
     lastSubmittedMessage.current = submittedMessage;
     setValidation("");
+    setSelectedHotelId(null);
     setState({ status: "loading" });
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -105,6 +110,36 @@ export default function Home() {
           <h2 className="text-xl font-semibold">Assistant response</h2>
           <p className="mt-3">{state.result.message}</p>
           {state.result.hotels.length === 0 && <p className="mt-3 font-medium">No hotels found. Try another message or choose the Success demo scenario.</p>}
+        </section>}
+      </div>
+      {state.status === "done" && state.result.hotels.length > 0 && (
+        <section aria-labelledby="recommendations-heading" className="mt-6">
+          <h2 id="recommendations-heading" className="text-xl font-semibold">Hotel recommendations · Synthetic fixture data</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {state.result.hotels.map((hotel) => (
+              <article key={hotel.id} aria-labelledby={`hotel-${hotel.id}`}
+                className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 break-words">
+                <h3 id={`hotel-${hotel.id}`} className="text-xl font-semibold">{hotel.name}</h3>
+                <p className="mt-3 font-semibold">{hotel.currency} {hotel.nightlyPrice.toFixed(2)} per night</p>
+                <p className="mt-2">{hotel.breakfastIncluded ? "Breakfast included" : "Breakfast not included"}</p>
+                <p className="mt-3 text-slate-600">{hotel.explanation}</p>
+                <button type="button" aria-pressed={selectedHotelId === hotel.id}
+                  onClick={() => setSelectedHotelId(hotel.id)}
+                  className="mt-5 w-full rounded-lg border border-teal-800 px-4 py-3 font-semibold text-teal-900 aria-pressed:bg-teal-800 aria-pressed:text-white">
+                  Select {hotel.name}
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+      <div aria-live="polite">
+        {selectedHotel && <section aria-labelledby="selection-heading" className="mt-6 rounded-xl border border-teal-700 bg-teal-50 p-5 break-words">
+          <h2 id="selection-heading" className="text-xl font-semibold">Your selected hotel</h2>
+          <p className="mt-3 font-semibold">{selectedHotel.name}</p>
+          <p className="mt-2">{selectedHotel.currency} {selectedHotel.nightlyPrice.toFixed(2)} per night</p>
+          <p className="mt-2">{selectedHotel.breakfastIncluded ? "Breakfast included" : "Breakfast not included"}</p>
+          <p className="mt-3 text-sm text-slate-600">Synthetic fixture selection. No booking has been made.</p>
         </section>}
       </div>
       {state.status === "error" && <section className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5" aria-label="Request failed">
