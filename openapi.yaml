@@ -1,0 +1,167 @@
+openapi: 3.1.0
+info:
+  title: Serko Hotel Recommendations Demo
+  version: 0.1.0
+  description: |
+    Handwritten contract drafted before implementation. All hotel data is synthetic.
+    The scenario field is a deterministic demo control, not natural-language
+    interpretation. No live model or real booking is involved.
+servers:
+  - url: http://localhost:8000
+paths:
+  /recommendations:
+    post:
+      operationId: createRecommendations
+      summary: Return deterministic synthetic hotel recommendations
+      description: |
+        Validate the request before selecting a scenario. For success, wait
+        approximately 700 milliseconds (an asynchronous demo delay), then return
+        all three exact fixtures in the documented order. Empty returns an empty
+        hotel array. Error always returns HTTP 503; it does not fail only once.
+        Successful responses identify themselves as synthetic fixture data in
+        their message. Timing is illustrative, not a precise latency guarantee.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationRequest'
+            example:
+              message: Find a Wellington hotel for two nights, up to NZD 250 per night; breakfast preferred.
+              scenario: success
+      responses:
+        '200':
+          description: Synthetic fixture recommendations or an empty fixture result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+              examples:
+                success:
+                  summary: All three exact synthetic fixtures after a short delay
+                  value:
+                    message: 'Synthetic fixture data: here are three demo hotel recommendations.'
+                    hotels:
+                      - id: h1
+                        name: Harbour House
+                        nightlyPrice: 220
+                        currency: NZD
+                        breakfastIncluded: true
+                        explanation: Within budget; breakfast included.
+                      - id: h2
+                        name: City Garden
+                        nightlyPrice: 245
+                        currency: NZD
+                        breakfastIncluded: true
+                        explanation: Near the meeting district.
+                      - id: h3
+                        name: Quay Rooms
+                        nightlyPrice: 195
+                        currency: NZD
+                        breakfastIncluded: false
+                        explanation: Lower price; breakfast costs extra.
+                empty:
+                  summary: Empty synthetic fixture result
+                  value:
+                    message: 'Synthetic fixture data: no hotels found for this demo scenario.'
+                    hotels: []
+        '422':
+          description: |
+            Request validation failed, including a missing field, wrong field
+            type, empty or whitespace-only message, unsupported scenario, or
+            malformed JSON. Error locations and messages depend on the failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestValidationError'
+              example:
+                detail:
+                  - loc: [body, message]
+                    msg: String should match pattern '\S'
+                    type: string_pattern_mismatch
+        '503':
+          description: Deterministic recoverable demo failure for the error scenario.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceUnavailableError'
+              example:
+                detail: 'Synthetic fixture demo: recommendations are temporarily unavailable. Select Success and retry.'
+components:
+  schemas:
+    RecommendationRequest:
+      type: object
+      required: [message, scenario]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          pattern: '\S'
+          description: Must contain at least one non-whitespace character. No natural-language interpretation is performed.
+        scenario:
+          type: string
+          enum: [success, empty, error]
+          description: Required deterministic demo outcome control.
+    RecommendationResponse:
+      type: object
+      required: [message, hotels]
+      properties:
+        message:
+          type: string
+          description: Assistant message explicitly labelled as synthetic fixture data.
+        hotels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hotel'
+          description: All three documented fixtures for success; an empty array for empty.
+    Hotel:
+      type: object
+      required: [id, name, nightlyPrice, currency, breakfastIncluded, explanation]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nightlyPrice:
+          type: number
+        currency:
+          type: string
+        breakfastIncluded:
+          type: boolean
+        explanation:
+          type: string
+    RequestValidationError:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+    ValidationIssue:
+      type: object
+      required: [loc, msg, type]
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        type:
+          type: string
+        input:
+          description: Optional invalid input supplied by FastAPI validation.
+        ctx:
+          type: object
+          additionalProperties: true
+          description: Optional validation metadata.
+    ServiceUnavailableError:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          minLength: 1
