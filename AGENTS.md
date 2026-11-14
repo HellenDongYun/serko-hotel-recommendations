@@ -12,8 +12,8 @@ Track actual time and stop at the cap; report incomplete work honestly.
 - `frontend/.env.example`: safe public API URL configuration.
 - `README.md` and `APPROACH.md`: required delivery records, to be created later.
 
-This stage establishes context and the contract only. Application code and runtime
-versions are not established. Do not claim the application runs yet.
+The FastAPI backend is implemented; the frontend remains pending. The handwritten
+contract predates implementation and must remain the source for contract checks.
 
 ## Agreed scope and behaviour
 
@@ -42,9 +42,22 @@ credentials, personal information, and confidential material out of all records.
 
 ## Run and check commands
 
-Commands are pending until the frontend and backend are implemented. Replace this
-section with actual verified install, run, and check commands and record runtime
-versions in README.md. Do not invent successful command results.
+Backend commands (run from repository root):
+
+```sh
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
+backend/.venv/bin/python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+backend/.venv/bin/python -m pytest backend/tests -q
+# In another terminal while Uvicorn is running:
+backend/.venv/bin/python backend/check_http.py
+```
+
+Backend runtime: Python 3.12.8, FastAPI 0.163.0, Uvicorn 0.54.0,
+Pydantic 2.14.3. `backend/requirements.txt` pins the installed environment,
+including test dependencies. CORS permits `http://localhost:3000` for POST with
+Content-Type. Frontend commands remain pending. Record runtime versions and
+complete install/run/check instructions in README.md at the documentation stage.
 
 Planned checks: Vitest and Testing Library for focused frontend state/component
 checks; API validation and contract checks; TypeScript, lint, and production build
