@@ -148,6 +148,13 @@ Chrome and DevTools observations.
 
 ## Agent context and representative interactions
 
+**Follow-up refactor (retrospective summary).** The user asked to split
+`page.tsx` into components. The page retains request state, submission and
+retry logic. `HotelRequestForm`, `RecommendationResults` and `HotelCard`
+render the corresponding parts of the existing UI. The API contract was
+unchanged. The existing frontend suite mocks fetch and covers recovery from
+HTTP 503, including the retry payload and all three returned cards.
+
 The record shows the agent explicitly reading root `AGENTS.md` and `openapi.yaml`
 before implementation. The backend tool call included
 `cat AGENTS.md; cat openapi.yaml`, followed by this acknowledgement:
