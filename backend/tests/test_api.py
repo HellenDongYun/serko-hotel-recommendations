@@ -68,22 +68,24 @@ def test_malformed_json():
     assert_contract(response, 422)
 
 
-def test_local_frontend_cors():
+@pytest.mark.parametrize("origin", ["http://localhost:3000", "http://localhost:3001", "http://localhost:43123"])
+def test_local_frontend_cors(origin):
     response = client.options("/recommendations", headers={
-        "Origin": "http://localhost:3000",
+        "Origin": origin,
         "Access-Control-Request-Method": "POST",
         "Access-Control-Request-Headers": "content-type",
     })
     assert response.status_code == 200
-    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+    assert response.headers["access-control-allow-origin"] == origin
     response = client.post("/recommendations", json={"message": "Hotel please", "scenario": "error"},
-                           headers={"Origin": "http://localhost:3000"})
-    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+                           headers={"Origin": origin})
+    assert response.headers["access-control-allow-origin"] == origin
 
 
-def test_other_origin_not_allowed():
+@pytest.mark.parametrize("origin", ["http://example.com", "http://localhost.example.com:3001"])
+def test_other_origin_not_allowed(origin):
     response = client.options("/recommendations", headers={
-        "Origin": "http://example.com", "Access-Control-Request-Method": "POST",
+        "Origin": origin, "Access-Control-Request-Method": "POST",
     })
     assert response.status_code == 400
     assert "access-control-allow-origin" not in response.headers

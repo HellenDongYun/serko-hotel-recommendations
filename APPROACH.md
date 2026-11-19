@@ -18,7 +18,7 @@ was added. Two local processes and the documented ports are assumed.
   deterministic evidence and visible loading without an external dependency.
 - The browser calls FastAPI directly using `NEXT_PUBLIC_API_BASE_URL`. Avoiding
   an extra proxy keeps the implementation small but requires CORS and correct
-  local origins. Only `http://localhost:3000` is allowed for frontend POST requests.
+  local origins. HTTP origins on `localhost` are allowed for frontend POST requests.
 - FastAPI/Pydantic return HTTP 422 for missing fields, wrong types, blank messages,
   invalid scenarios, and malformed JSON. HTTP 503 has a readable string `detail`;
   the frontend handles non-string error details with a fallback.
@@ -147,6 +147,12 @@ Chrome and DevTools observations.
   successful manual observations were made by the user, not by Codex automation.
 
 ## Agent context and representative interactions
+
+**Frontend port follow-up (retrospective summary).** The user asked to handle
+a busy default frontend port. Development uses Next.js port fallback, and
+production preview lets the OS pick an available port. Both accept an explicit
+`--port`. CORS permits HTTP origins on the exact `localhost` hostname across
+ports. The recommendation endpoint and its payload contract are unchanged.
 
 **Request reliability follow-up (retrospective summary).** The user requested
 a timeout and runtime validation of successful frontend responses. The browser

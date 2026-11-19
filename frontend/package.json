@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --hostname localhost --port 3000",
+    "dev": "next dev --hostname localhost",
     "build": "next build --webpack",
-    "start": "next start --hostname localhost --port 3000",
+    "start": "next start --hostname localhost --port 0",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

@@ -66,8 +66,10 @@ Terminal 2:
 npm --prefix frontend run dev
 ```
 
-Open **http://localhost:3000**. Keep that hostname: the API permits the frontend
-origin `http://localhost:3000` through CORS. The API base URL is
+Open the **Local** URL printed by Next.js. Development starts at port 3000 by
+default and tries subsequent ports if needed. To choose a specific port, run
+`npm --prefix frontend run dev -- --port 3100`. Keep the `localhost` hostname
+so the browser origin matches the API's CORS policy. The API base URL is
 `http://localhost:8000`. Stop each service with Ctrl+C.
 
 Optional production frontend commands, with FastAPI still running:
@@ -76,6 +78,9 @@ Optional production frontend commands, with FastAPI still running:
 npm --prefix frontend run build
 npm --prefix frontend start
 ```
+
+The production preview asks the OS for a free port and prints its **Local** URL.
+To use a specific port, run `npm --prefix frontend start -- --port 3100`.
 
 The production build was checked; running the production server was not checked.
 

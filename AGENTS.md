@@ -58,7 +58,7 @@ backend/.venv/bin/python backend/check_http.py
 
 Backend runtime: Python 3.12.8, FastAPI 0.163.0, Uvicorn 0.54.0,
 Pydantic 2.14.3. `backend/requirements.txt` pins the installed environment,
-including test dependencies. CORS permits `http://localhost:3000` for POST with
+including test dependencies. CORS permits HTTP origins on `localhost` at any port for POST with
 Content-Type. Runtime versions and complete setup instructions are in README.md.
 
 Frontend commands (run from repository root; Node.js v22.22.2, npm 10.9.7):
@@ -74,7 +74,7 @@ npm --prefix frontend run build
 
 Copy the environment example only on initial setup, preserving any existing local
 configuration. Next.js reads `NEXT_PUBLIC_API_BASE_URL` from `.env.local`; restart
-after changing it. The frontend runs at `http://localhost:3000`. Package versions
+after changing it. Open the Local URL printed by Next.js. Package versions
 are recorded in `frontend/package-lock.json`. Tests replace fetch at the network
 boundary; they do not verify the real API or browser layout/keyboard behaviour.
 
