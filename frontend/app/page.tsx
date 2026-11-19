@@ -4,7 +4,8 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { HotelRequestForm } from "./recommendations/HotelRequestForm";
 import { RecommendationResults } from "./recommendations/RecommendationResults";
-import type { Recommendations, RequestState, Scenario } from "./recommendations/types";
+import { fetchRecommendations } from "./recommendations/api";
+import type { RequestState, Scenario } from "./recommendations/types";
 
 export default function Home() {
   const [message, setMessage] = useState("");
@@ -24,25 +25,13 @@ export default function Home() {
     setSelectedHotelId(null);
     setState({ status: "loading" });
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-      if (!baseUrl) throw new Error("API URL is missing. Set NEXT_PUBLIC_API_BASE_URL and restart the frontend.");
-      const response = await fetch(`${baseUrl.replace(/\/$/, "")}/recommendations`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: submittedMessage, scenario }),
-      });
-      if (!response.ok) {
-        const error = await response.json().catch(() => null);
-        throw new Error(typeof error?.detail === "string"
-          ? error.detail
-          : `Recommendations could not be loaded (HTTP ${response.status}). Please retry.`);
-      }
-      const result: Recommendations = await response.json();
+      const result = await fetchRecommendations(submittedMessage, scenario);
       setState({ status: "done", result });
     } catch (error) {
-      setState({ status: "error", message: error instanceof TypeError
-        ? "Cannot reach the recommendations API. Check that it is running and retry."
-        : error instanceof Error ? error.message : "Recommendations could not be loaded. Please retry." });
+      setState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Recommendations could not be loaded. Please retry.",
+      });
     } finally {
       pending.current = false;
     }

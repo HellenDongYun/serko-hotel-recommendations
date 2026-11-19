@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home from "../app/page";
+import { RECOMMENDATIONS_TIMEOUT_MS } from "../app/recommendations/api";
 
 const originalMessage = "Find a Wellington hotel for two nights.";
 const success = {
@@ -52,11 +53,64 @@ describe("recommendation request journey", () => {
     expect(fetchMock).toHaveBeenCalledWith("http://localhost:8123/recommendations", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: originalMessage, scenario: "success" }),
+      signal: expect.any(AbortSignal),
     });
     await act(async () => resolve(json(success)));
     expect(await screen.findByText(success.message)).toBeVisible();
     expect(submit).toBeEnabled();
     expect(screen.queryByText("Finding demo recommendations…")).not.toBeInTheDocument();
+  });
+
+  it.each(["headers", "body"])("times out while waiting for %s and allows manual retry", async (phase) => {
+    const { fetchMock, input } = setup();
+    fetchMock.mockImplementationOnce(async (_url, options) => {
+      const signal = options!.signal!;
+      const pending = new Promise<never>((_resolve, reject) => {
+        signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+      });
+      if (phase === "headers") return pending;
+      const response = json(success);
+      vi.spyOn(response, "json").mockReturnValue(pending);
+      return response;
+    }).mockResolvedValueOnce(json(success));
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.change(input, { target: { value: originalMessage } });
+      fireEvent.click(screen.getByRole("button", { name: "Find hotels" }));
+      await act(async () => vi.advanceTimersByTimeAsync(RECOMMENDATIONS_TIMEOUT_MS - 1));
+      expect(screen.getByRole("status")).toHaveTextContent("Finding demo recommendations");
+      await act(async () => vi.advanceTimersByTimeAsync(1));
+      expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+      expect(screen.getByRole("alert")).toHaveTextContent("timed out");
+      expect(screen.queryByRole("article")).not.toBeInTheDocument();
+      expect(input).toHaveValue(originalMessage);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      await act(async () => fireEvent.click(screen.getByRole("button", { name: "Retry" })));
+      expect(screen.getAllByRole("article")).toHaveLength(3);
+      expect(fetchMock.mock.calls[1][1]?.signal?.aborted).toBe(false);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each([
+    ["malformed JSON", () => new Response("{", { status: 200 })],
+    ["wrong top-level shape", () => json({ message: "Demo", hotels: null })],
+    ["invalid hotel fields", () => json({
+      ...success,
+      hotels: [success.hotels[0], { ...success.hotels[1], nightlyPrice: "245" }],
+    })],
+  ] as const)("rejects a successful HTTP response with %s", async (_label, response) => {
+    const { fetchMock, user, input } = setup();
+    fetchMock.mockResolvedValueOnce(response());
+    await user.type(input, originalMessage);
+    await user.click(screen.getByRole("button", { name: "Find hotels" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("returned an invalid response");
+    expect(screen.queryByRole("article")).not.toBeInTheDocument();
+    expect(input).toHaveValue(originalMessage);
+    expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
   });
 
   it("renders the assistant message and a clear empty state", async () => {
