@@ -162,9 +162,11 @@ DevTools confirmed the original message and `scenario: "success"` in that retry.
 At a 375 px viewport, the user observed no horizontal scrolling and visible focus,
 and submitted, selected a hotel, and activated Retry by keyboard.
 
-These are user-reported manual observations. Codex browser automation timed out;
-frontend component tests separately mock fetch. The generated `frontend/AGENTS.md`
-is ignored and excluded from the submission; root `AGENTS.md` is the project context.
+These are user-reported manual observations. See the
+[browser automation workflow](APPROACH.md#browser-automation-workflow) for Codex
+steps, follow-up evidence, and what to record when automation is blocked.
+Frontend component tests separately mock fetch. The generated `frontend/AGENTS.md`
+is ignored and excluded from the submission. Root `AGENTS.md` is the project context.
 
 ## Branch and version reference
 

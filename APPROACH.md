@@ -152,6 +152,34 @@ Chrome and DevTools observations.
 
 ## Agent context and representative interactions
 
+### Browser automation workflow
+
+1. Start FastAPI and Next.js using the [README setup](README.md). Open the
+   **Local** URL printed by Next.js in the browser automation tool. Use the
+   printed `localhost` port so the origin matches the API's CORS policy.
+2. Submit a blank request and check the validation message. Submit a valid
+   request in Success and wait for the three hotel cards. Select one with
+   Enter and check the selection summary. Submit with Empty and confirm the
+   old cards and selection disappear.
+3. Submit with Error, confirm the 503 message and preserved input, edit
+   the draft, switch to Success, and activate Retry. Check that all three
+   cards return and the edited draft remains. When network inspection is
+   available, verify the retry body contains the original submitted message
+   and `scenario: "success"`. Otherwise record the UI outcome and cite the
+   frontend test separately for the exact payload.
+4. At a 375 px viewport, check that the cards form a single column and the
+   page has no horizontal overflow. Reset the viewport after the check.
+5. If the tool times out or an action fails, check that both services are
+   reachable and inspect the current page state. Retry after identifying
+   the cause. If browser automation remains blocked, record the failed
+   step and mark remaining browser checks **Not run**. Record any manual
+   Chrome checks with their source. Label direct HTTP checks and
+   fetch-mocked tests separately because they exercise different paths.
+
+For each completed run, record the revision tested, the frontend URL and viewport,
+the observed outcome, and any checks left unverified. The historical results
+above cover the browser run after the component refactor.
+
 ### Failed attempts and follow-up verification
 
 These entries are retrospective summaries of observed failures during AI-assisted
