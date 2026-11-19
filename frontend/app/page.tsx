@@ -4,8 +4,8 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { HotelRequestForm } from "./recommendations/HotelRequestForm";
 import { RecommendationResults } from "./recommendations/RecommendationResults";
-import { fetchRecommendations } from "./recommendations/api";
-import type { RequestState, Scenario } from "./recommendations/types";
+import { fetchRecommendations, type Scenario } from "../lib/api";
+import type { RequestState } from "./recommendations/types";
 
 export default function Home() {
   const [message, setMessage] = useState("");

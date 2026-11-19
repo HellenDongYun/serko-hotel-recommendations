@@ -1,4 +1,13 @@
-import type { Hotel, Recommendations, Scenario } from "./types";
+export type Scenario = "success" | "empty" | "error";
+export type Hotel = {
+  id: string;
+  name: string;
+  nightlyPrice: number;
+  currency: string;
+  breakfastIncluded: boolean;
+  explanation: string;
+};
+export type Recommendations = { message: string; hotels: Hotel[] };
 
 export const RECOMMENDATIONS_TIMEOUT_MS = 5_000;
 

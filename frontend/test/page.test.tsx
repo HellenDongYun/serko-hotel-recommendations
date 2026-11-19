@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home from "../app/page";
-import { RECOMMENDATIONS_TIMEOUT_MS } from "../app/recommendations/api";
+import { RECOMMENDATIONS_TIMEOUT_MS } from "../lib/api";
 
 const originalMessage = "Find a Wellington hotel for two nights.";
 const success = {

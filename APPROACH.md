@@ -148,6 +148,11 @@ Chrome and DevTools observations.
 
 ## Agent context and representative interactions
 
+**API client follow-up (retrospective summary).** The user requested a separate
+API client module. The existing recommendation client and API types now live
+in `frontend/lib/api.ts`. The page imports that client and keeps its UI state.
+The HTTP contract, timeout policy, and retry behavior are unchanged.
+
 **Frontend port follow-up (retrospective summary).** The user asked to handle
 a busy default frontend port. Development uses Next.js port fallback, and
 production preview lets the OS pick an available port. Both accept an explicit

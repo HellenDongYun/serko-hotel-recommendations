@@ -1,4 +1,4 @@
-import type { Hotel } from "./types";
+import type { Hotel } from "../../lib/api";
 
 type Props = {
   hotel: Hotel;
