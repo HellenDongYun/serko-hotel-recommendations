@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import type { Scenario } from "./types";
+import type { Scenario } from "../../lib/api";
 
 type Props = {
   message: string;
