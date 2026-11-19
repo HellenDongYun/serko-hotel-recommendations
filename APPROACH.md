@@ -143,10 +143,26 @@ Chrome and DevTools observations.
 - User manual small-screen check: **Passed, user-reported at 375 px**. The layout
   required no horizontal scrolling. Touch use and other viewport/browser
   combinations were not reported.
-- Codex browser automation: **Not run** after connection/tool timeouts. The
-  successful manual observations were made by the user, not by Codex automation.
+- Codex browser automation initially timed out. A later run after the component
+  refactor verified blank-input validation, three recommendations, keyboard
+  selection, empty results, recovery after HTTP 503, and a 375 px layout
+  without horizontal overflow against the local API. The run verified the
+  retry outcome in the browser. The automated frontend test asserted the
+  exact retry payload with fetch stubbed.
 
 ## Agent context and representative interactions
+
+### Failed attempts and follow-up verification
+
+These entries are retrospective summaries of observed failures during AI-assisted
+work. Each result is scoped to the check that was completed.
+
+| Attempt | Observed failure | Response and evidence |
+| --- | --- | --- |
+| Original browser automation | Connection and tool timeouts blocked verification during the initial implementation. | The user supplied separate Chrome results. A later Codex browser run against the local API passed the journeys listed above. Exact retry-payload verification in that later round came from the mocked frontend test. |
+| Frontend test rerun before the component-refactor merge | Vitest could not write its generated config under `node_modules/.vite-temp` because of filesystem permissions. The test suite never started on that attempt. | Reran with `npm --prefix frontend test -- --configLoader runner`. All eight tests passed without a repository config change. |
+| Development startup with port 3000 occupied | Next.js selected 3001, then Turbopack failed to start the filesystem event stream. A first Webpack retry also hit a file-watcher limit. | Retested with `WATCHPACK_POLLING=true npm --prefix frontend run dev -- --webpack`. Port 3001 served the page with HTTP 200. The production preview also served the page and passed live API CORS checks on both an OS-assigned port and explicit port 3100. The Turbopack run established port fallback only. |
+
 
 **API client follow-up (retrospective summary).** The user requested a separate
 API client module. The existing recommendation client and API types now live
@@ -268,8 +284,8 @@ cannot prove the absence of every sensitive value.
 
 ## Limitations and next steps
 
-1. Codex browser automation remains unavailable. Manual Chrome checks cover the
-   reported journeys, 375 px layout, and keyboard actions; other browsers,
+1. The user’s Chrome checks and later Codex browser run cover the reported
+   journeys, 375 px layout, and keyboard actions. Other browsers,
    screen readers, touch behaviour, and an exhaustive accessibility audit are
    unverified. Loading was checked with a controlled pending component response;
    no separate manual timing/duplicate-click observation was supplied.
