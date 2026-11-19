@@ -37,7 +37,7 @@ HOTELS = [
 app = FastAPI(title="Serko Hotel Recommendations Demo", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origin_regex=r"http://localhost(?::[0-9]{1,5})?",
     allow_methods=["POST"],
     allow_headers=["Content-Type"],
 )
