@@ -30,13 +30,11 @@ export function HotelRequestForm({
         <label htmlFor="scenario" className="block font-semibold">Demo scenario</label>
         <select id="scenario" value={scenario} disabled={loading}
           onChange={(event) => onScenarioChange(event.target.value as Scenario)}
-          aria-describedby="scenario-help"
           className="mt-2 w-full rounded-lg border border-slate-400 bg-white p-3 sm:w-60">
           <option value="success">Success</option>
           <option value="empty">Empty</option>
           <option value="error">Error</option>
         </select>
-        <p id="scenario-help" className="mt-2 text-sm text-slate-600">Success returns three fixtures. Empty returns none. Error always returns HTTP 503.</p>
       </div>
       <button type="submit" disabled={loading} className="w-full rounded-lg bg-teal-800 px-5 py-3 font-semibold text-white disabled:opacity-60 sm:w-auto">Find hotels</button>
     </form>
