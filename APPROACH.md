@@ -148,6 +148,14 @@ Chrome and DevTools observations.
 
 ## Agent context and representative interactions
 
+**Request reliability follow-up (retrospective summary).** The user requested
+a timeout and runtime validation of successful frontend responses. The browser
+aborts the request after five seconds, including time spent reading the body.
+It checks the required response and hotel fields against the OpenAPI types
+before rendering. Both failures use the existing manual Retry flow. The HTTP
+contract remains unchanged. Frontend regression tests mock fetch, including
+aborts during response retrieval and body reading.
+
 **Follow-up refactor (retrospective summary).** The user asked to split
 `page.tsx` into components. The page retains request state, submission and
 retry logic. `HotelRequestForm`, `RecommendationResults` and `HotelCard`
@@ -255,9 +263,8 @@ cannot prove the absence of every sensitive value.
    unverified. Loading was checked with a controlled pending component response;
    no separate manual timing/duplicate-click observation was supplied.
 2. Verify a clean install and address the upstream test-client warning if time
-   permits. No lint command or full accessibility audit is claimed. There is no
-   timeout/cancellation policy, runtime schema validation of successful frontend
-   responses, or production hardening.
+   permits. No lint command or full accessibility audit is claimed. Production
+   hardening remains out of scope.
 3. Review/commit/push through the recruitment delivery route and identify the final
    branch/commit in the delivery message. README identifies the current actual
    implementation reference rather than a future documentation hash.
